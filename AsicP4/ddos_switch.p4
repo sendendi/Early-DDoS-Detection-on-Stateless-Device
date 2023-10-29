@@ -1,16 +1,16 @@
 #include "includes/headers.p4"
 #include "includes/parser.p4"
 
-#define USE_SAMPLING			0
-#define SAMPLE_X2Y_TRUNC_MASK 	0x03FF
-#define SAMPLE_Y2U_ARR_SIZE		128
+#define USE_SAMPLING 0
+#define SAMPLE_X2Y_TRUNC_MASK 0x03FF
+#define SAMPLE_Y2U_ARR_SIZE 128
 
 #define CARD_BUCKETS_TRUNC_MASK 0x000000001F
-#define CARD_BUCKETS_ARR_SIZE 	32
-#define CARD_USE_HARMONIC_MEAN	1
+#define CARD_BUCKETS_ARR_SIZE 32
+#define CARD_USE_HARMONIC_MEAN 1
 
-#define REG_PACKET_COUNTER 		0
-#define REG_PACKET_TO_SAMPLE 	1
+#define REG_PACKET_COUNTER 0
+#define REG_PACKET_TO_SAMPLE 1
 
 register sample_x2y_register {
 	width : 16;
@@ -42,7 +42,6 @@ metadata cardinality_data_t cardinality_data;
 
 header_type sample_x2y_data_t {
 	fields {
-		hash1 : 40;
 		packetNumber : 16;
 		packetToSample : 16;
 	}
@@ -64,8 +63,6 @@ table sample_x2y {
 }
 
 action sample_x2y_action() {
-	// calculate hash1 value:
-	modify_field(sample_x2y_data.hash1, (five_tuple.dstAddr * 59) ^ (five_tuple.srcAddr) ^ (five_tuple.srcPort << 16) ^ (five_tuple.dstPort));
 	// read the number of the packet to sample:
 	register_read(sample_x2y_data.packetToSample, sample_x2y_register, REG_PACKET_TO_SAMPLE);
 	// update sample_x2y counter:
@@ -93,13 +90,8 @@ table get_cardinality {
 }
 
 action get_cardinality_action() {
-	#if USE_SAMPLING == 0
-		// calculate hash1 value:
-		modify_field(cardinality_data.hash1, (five_tuple.dstAddr * 59) ^ (five_tuple.srcAddr) ^ (five_tuple.srcPort << 16) ^ (five_tuple.dstPort));	
-	#else
-		// copy hash1 value:
-		modify_field(cardinality_data.hash1, sample_x2y_data.hash1);
-	#endif
+	// calculate hash1 value:
+	modify_field(cardinality_data.hash1, (five_tuple.dstAddr * 59) ^ (five_tuple.srcAddr) ^ (five_tuple.srcPort << 16) ^ (five_tuple.dstPort));
 	// calculate hash2 value:
 	modify_field(cardinality_data.hash2, cardinality_data.hash1 & CARD_BUCKETS_TRUNC_MASK);
 	// calculate the rank of the current packet:

@@ -449,7 +449,7 @@ def traffic_routine():
 				ip_src = "192.168.48.%i" % random.randint(10, 20)
 				ip_dst = "%i.15.67.19" % random.choice([5, 6, 7, 110, 210])
 				port_src = random.randint(36000, 36004)
-				port_dst = random.randint(8999, 9020)
+				port_dst = random.randint(8999, 9010)
 			else:
 				ip_src = "192.168.48.137"
 				ip_dst = "%i.15.67.19" % random.choice([10, 60, 110, 160, 210])
